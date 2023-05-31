@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 
 const products = require("./data/data.json");
@@ -38,6 +38,48 @@ async function run() {
       const newToy = req.body;
       console.log(newToy);
       const result = await toyCollection.insertOne(newToy);
+      res.send(result);
+    });
+
+    app.get("/newtoy", async (req, res) => {
+      const cursor = toyCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.delete("/newtoy/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/newtoy/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/newtoy/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedToy = req.body;
+      const toy = {
+        $set: {
+          name: updatedToy.name,
+          sup_name: updatedToy.sup_name,
+          email: updatedToy.email,
+          category: updatedToy.category,
+          price: updatedToy.price,
+          rating: updatedToy.rating,
+          stock: updatedToy.stock,
+          photo: updatedToy.photo,
+          details: updatedToy.details,
+        },
+      };
+      const result = await toyCollection.updateOne(filter, toy, options);
       res.send(result);
     });
 
